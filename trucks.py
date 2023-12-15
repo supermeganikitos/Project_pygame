@@ -1,5 +1,6 @@
 '''File about tracks clsses'''
 
-class Truck():
+
+class Truck:
     def __init__(self):
         pass
