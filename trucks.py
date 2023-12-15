@@ -6,3 +6,4 @@ class Truck:
         pass
     def func(self):
         pass
+print(1)
