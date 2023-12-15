@@ -1,4 +1,4 @@
-'''File about tracks clsses'''
+import pygame
 
 
 class Truck:
@@ -7,3 +7,7 @@ class Truck:
 
     def func(self):
         pass
+
+
+class Destination():
+    pass
