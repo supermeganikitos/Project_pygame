@@ -1,9 +1,11 @@
 import pygame
 
 
+
+
 def draw(screen, n):
     screen.fill(pygame.Color('Black'))
-    font = pygame.font.Font(None, 85)
+    font = pygame.font.Font('Realest-Extended.otf', 85)
     text = font.render(str(n), True, pygame.Color('White'))
     text_x = width // 2 - text.get_width() // 2
     text_y = height // 2 - text.get_height() // 2
@@ -25,5 +27,5 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        draw(screen, 'Игра: Симулятор грузовика')
+        draw(screen, 'Truck simulator')
         pygame.display.flip()
