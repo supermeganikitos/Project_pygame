@@ -3,7 +3,9 @@ import os
 import sys
 
 trucks = pygame.sprite.Group()
-
+pygame.init()
+size = width, height = 1550, 800
+screen = pygame.display.set_mode(size)
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
