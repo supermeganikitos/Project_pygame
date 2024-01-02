@@ -46,33 +46,25 @@ class Truck(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.vx, self.vy)
 
 
-class SimpleButton(pygame.sprite.Sprite):  # от него будем наследовать все кнопки и destination тоже
-    def __init__(self, group, x, y, size_x=10, size_y=10, color=(200, 200, 200)):
-        super().__init__(*group)
-        self.image = pygame.Surface((size_x, size_y), pygame.SRCALPHA, 32)
+class SimpleButton():
+    def __init__(self, x, y, width, height, color=(100, 100, 100), text=''):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.text = text
 
-        pygame.draw.rect(self.image, pygame.Color(color),
-                         (0, 0, size_x, size_y))
-        self.rect = pygame.Rect(x, y, size_x, size_y)
+    def draw(self, win):
+        pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
+        if self.text != '':
+            font = pygame.font.SysFont('comicsans', 20)
+            text = font.render(self.text, 1, (0, 0, 0))
+            win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
+                            self.y + (self.height / 2 - text.get_height() / 2)))
 
-
-class MaskButton(SimpleButton):  # от него будем наследовать все кнопки и destination тоже
-    def __init__(self, group, x, y, img_name):
-        super().__init__(group, x, y, size_x=10, size_y=10, color=(0, 0, 0))
-        self.image = load_image(img_name)
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-
-
-class Truck1:
-    def __init__(self):
-        pass
-
-    def func(self):
-        pass
-
-
-
-
-
+    def update(self, *args):
+        if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
+                self.rect.collidepoint(args[0].pos):
+            return True
 

@@ -1,5 +1,5 @@
 import pygame
-from trucks import Truck, trucks
+from trucks import Truck, trucks, SimpleButton
 
 pygame.init()
 size = width, height = 1550, 800
@@ -19,6 +19,9 @@ def draw_(screen, n):
 
 
 pygame.display.set_caption('simulator truck')
+listbtn = []
+mimapbtn = SimpleButton(0, 0, 100, 100)
+listbtn.append(mimapbtn)
 pygame.display.flip()
 running = True
 x_step = 150
@@ -35,5 +38,7 @@ while running:
     trucks.update()
     trucks.draw(screen)
     draw_(screen, 'Truck simulator')
+    for i in listbtn:
+        i.draw(screen)
     clock.tick(10)
     pygame.display.flip()
