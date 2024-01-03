@@ -7,6 +7,7 @@ pygame.init()
 size = width, height = 1550, 800
 screen = pygame.display.set_mode(size)
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     # если файл не существует, то выходим
@@ -46,14 +47,16 @@ class Truck(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.vx, self.vy)
 
 
-class SimpleButton():
-    def __init__(self, x, y, width, height, color=(100, 100, 100), text=''):
+class SimpleButton(pygame.sprite.Sprite):
+    def __init__(self, group, x, y, width, height, color=(100, 100, 100), text=''):
+        super().__init__(*group)
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.color = color
         self.text = text
+        self.rect = pygame.Rect(x, y, width, height)
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
