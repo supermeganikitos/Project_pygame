@@ -20,8 +20,13 @@ def draw_(screen, n):
 
 pygame.display.set_caption('simulator truck')
 listbtn = []
-mimapbtn = SimpleButton(0, 0, 100, 100)
+mimapbtn = SimpleButton(500, 500, 600, 100)
+mimapbtn1 = SimpleButton(100, 100, 100, 100)
+mimapbtn2 = SimpleButton(100, 100, 100, 100)
 listbtn.append(mimapbtn)
+listbtn.append(mimapbtn1)
+listbtn.append(mimapbtn2)
+
 pygame.display.flip()
 running = True
 x_step = 150
