@@ -68,11 +68,37 @@ def running_minimap():
     screen.blit(bg, (0, 0))
     clock = pygame.time.Clock()
     runningminimap = True
+    dest = pygame.sprite.Group()
+    moscow = SimpleButton(dest, 430, 100, 40, 25, pygame.Color('yellow'), text='Moscow', font_size=10)
+    kazan = SimpleButton(dest, 70, 50, 40, 25, pygame.Color('yellow'), text='Kazan', font_size=10)
+    saratov = SimpleButton(dest, 170, 170, 40, 25, pygame.Color('yellow'), text='Saratov', font_size=10)
+    samara = SimpleButton(dest, 60, 405, 40, 25, pygame.Color('yellow'), text='Samara', font_size=10)
+    tyla = SimpleButton(dest, 50, 555, 40, 25, pygame.Color('yellow'), text='Tyla', font_size=10)
+    penza = SimpleButton(dest, 380, 445, 40, 25, pygame.Color('yellow'), text='Penza', font_size=10)
+    piter = SimpleButton(dest, 500, 425, 40, 25, pygame.Color('yellow'), text='Piter', font_size=10)
+    current_destination = saratov
+    connected_destinations = {moscow: (piter, penza, samara, kazan),
+                              kazan: (saratov, moscow),
+                              saratov: (kazan, samara),
+                              samara: (saratov, moscow, tyla),
+                              tyla: (penza, samara, piter),
+                              penza: (piter, moscow, tyla),
+                              piter: (moscow, tyla, penza)}
     while runningminimap:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 runningminimap = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for i in connected_destinations.keys():
+                    res = i.update(event)
+                    if res and i in connected_destinations[current_destination]:
+                        print(True)
+                    elif res and i not in connected_destinations[current_destination]:
+                        print(False)
+
         clock.tick(10)
+        for i in connected_destinations.keys():
+            i.draw(screen)
         pygame.display.flip()
 
 

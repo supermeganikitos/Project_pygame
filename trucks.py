@@ -48,7 +48,7 @@ class Truck(pygame.sprite.Sprite):
 
 
 class SimpleButton(pygame.sprite.Sprite):
-    def __init__(self, group, x, y, width, height, color=(100, 100, 100), text=''):
+    def __init__(self, group, x, y, width, height, color=(100, 100, 100), text='', font_size=20):
         super().__init__(*group)
         self.x = x
         self.y = y
@@ -56,12 +56,13 @@ class SimpleButton(pygame.sprite.Sprite):
         self.height = height
         self.color = color
         self.text = text
+        self.font_size = font_size
         self.rect = pygame.Rect(x, y, width, height)
 
     def draw(self, win):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
         if self.text != '':
-            font = pygame.font.SysFont('comicsans', 20)
+            font = pygame.font.SysFont('comicsans', self.font_size)
             text = font.render(self.text, 1, (0, 0, 0))
             win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
                             self.y + (self.height / 2 - text.get_height() / 2)))
@@ -69,5 +70,6 @@ class SimpleButton(pygame.sprite.Sprite):
     def update(self, *args):
         if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
                 self.rect.collidepoint(args[0].pos):
+            print(1)
             return True
 
