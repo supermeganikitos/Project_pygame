@@ -28,7 +28,7 @@ def running_preview():
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('simulator truck')
     group_preview = pygame.sprite.Group()
-    mimapbtn = SimpleButton(group_preview, 500, 500, 600, 100, color=(90, 221, 34), text='minimap')
+    mimapbtn = SimpleButton(group_preview, 500, 500, 600, 100, pygame.Color('white'), text='minimap')
     pygame.display.flip()
     x_step = 150
     y_step = 90
