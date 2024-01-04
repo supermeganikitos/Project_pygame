@@ -53,8 +53,7 @@ def running_preview():
         trucks.update()
         trucks.draw(screen)
         draw_(screen, 'Truck simulator', width, height, delta_frame=10, width_frame=10)
-        group_preview.update()
-        group_preview.draw(screen)
+        mimapbtn.draw(screen)
         clock.tick(10)
         pygame.display.flip()
     if res:
