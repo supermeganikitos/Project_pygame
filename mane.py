@@ -13,7 +13,7 @@ def draw_(screen, n, width, height, textsize=85, delta_frame=None,
     font = pygame.font.Font(font, textsize)
     text = font.render(str(n), True, pygame.Color(text_color))
     text_x = width // 2 - text.get_width() // 2
-    text_y = height // 2 - text.get_height() // 2
+    text_y = height // 4 - text.get_height() // 2
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
@@ -28,7 +28,10 @@ def running_preview():
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('simulator truck')
     group_preview = pygame.sprite.Group()
-    mimapbtn = SimpleButton(group_preview, 500, 500, 600, 100, pygame.Color('white'), text='minimap')
+    play = SimpleButton(group_preview, 500, 290, 600, 100, pygame.Color('white'), text='play')
+    save = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='save')
+    mimapbtn = SimpleButton(group_preview, 500, 510, 600, 100, pygame.Color('white'), text='minimap')
+    quit = SimpleButton(group_preview, 500, 620, 600, 100, pygame.Color('white'), text='quit')
     pygame.display.flip()
     x_step = 150
     y_step = 90
@@ -53,11 +56,15 @@ def running_preview():
         trucks.update()
         trucks.draw(screen)
         draw_(screen, 'Truck simulator', width, height, delta_frame=10, width_frame=10)
+        play.draw(screen)
+        save.draw(screen)
         mimapbtn.draw(screen)
+        quit.draw(screen)
         clock.tick(10)
         pygame.display.flip()
     if res:
         return SHOW_MINIMAP
+
 
 
 def running_minimap():
