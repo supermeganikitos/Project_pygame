@@ -4,6 +4,7 @@ from trucks import Truck, trucks, SimpleButton
 SHOW_MINIMAP = 1
 SHOW_PREWIEW = 2
 SHOW_ROAD = 3
+EXIT = 1
 
 pygame.init()
 
@@ -31,7 +32,7 @@ def running_preview():
     play = SimpleButton(group_preview, 500, 290, 600, 100, pygame.Color('white'), text='play')
     save = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='save')
     mimapbtn = SimpleButton(group_preview, 500, 510, 600, 100, pygame.Color('white'), text='minimap')
-    quit = SimpleButton(group_preview, 500, 620, 600, 100, pygame.Color('white'), text='quit')
+    quitq = SimpleButton(group_preview, 500, 620, 600, 100, pygame.Color('white'), text='quit')
     pygame.display.flip()
     x_step = 150
     y_step = 90
@@ -48,9 +49,11 @@ def running_preview():
                 runningpreview = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 res = mimapbtn.update(event)
-                if res:
+                res1 = quitq.update(event)
+                if res or res1:
                     flag = True
                     break
+
         if flag:
             break
         trucks.update()
@@ -59,11 +62,14 @@ def running_preview():
         play.draw(screen)
         save.draw(screen)
         mimapbtn.draw(screen)
-        quit.draw(screen)
+        quitq.draw(screen)
         clock.tick(10)
         pygame.display.flip()
     if res:
         return SHOW_MINIMAP
+    if res1:
+        return EXIT
+
 
 
 
@@ -112,3 +118,5 @@ def running_minimap():
 run_preview = running_preview()
 if run_preview == SHOW_MINIMAP:
     running_minimap()
+elif run_preview == EXIT:
+    pygame.quit()
