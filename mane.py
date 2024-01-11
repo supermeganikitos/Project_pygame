@@ -8,12 +8,14 @@ SHOW_PREWIEW = 2
 SHOW_ROAD = 3
 EXIT_FROM_GAME = 4
 BACK_TO_MENU = 5
-RUN_THE_FIRST_TIME = True
-
-
-openlevelkey = None
+run_the_first_time = True
 
 pygame.init()
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
 
 
 def draw_(screen, n, width, height, textsize=85, delta_frame=None,
@@ -43,7 +45,7 @@ def running_preview():
     pygame.display.flip()
     x_step = 150
     y_step = 90
-    if RUN_THE_FIRST_TIME:
+    if run_the_first_time:
         for x in range(0, width, x_step):
             for y in range(0, height, y_step):
                 Truck(x, y, trucks)
@@ -55,8 +57,7 @@ def running_preview():
     while runningpreview:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                runningpreview = False
-                return EXIT_FROM_GAME
+                 terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 res = mimapbtn.update(event)
                 res1 = quitq.update(event)
@@ -123,21 +124,21 @@ def running_minimap():
                    (tyla, piter): '5-7.txt', (tyla, piter)[::-1]: '5-7.txt'}
     flag = False
     q_or_not = False
+    openlevelkey = False
     while runningminimap:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                runningminimap = False
-                return EXIT_FROM_GAME
+                terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i in connected_destinations.keys():
                     res = i.update(event)
                     if res and i in connected_destinations[current_destination]:
                         openlevelkey = roads_files[(i, current_destination)]
-                        return openlevelkey
+                        break
                     elif res and i not in connected_destinations[current_destination]:
                         print(False)
                 q_or_not = quit_to_the_menu.update(event)
-                if q_or_not:
+                if q_or_not or openlevelkey:
                     flag = True
                     break
         if flag:
@@ -149,6 +150,8 @@ def running_minimap():
         pygame.display.flip()
     if q_or_not:
         return BACK_TO_MENU
+    if openlevelkey:
+        return openlevelkey
 
 
 def running_level(filename):
@@ -165,10 +168,6 @@ def running_level(filename):
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
-
-    def terminate():
-        pygame.quit()
-        sys.exit()
 
     def start_screen():
         intro_text = ["ЗАСТАВКА", "",
@@ -246,6 +245,7 @@ def running_level(filename):
                     return
             elif args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_UP:
+                print(1)
                 try:
                     if load_level(filename)[self.pos_y - 1][self.pos_x] != '#' and self.pos_y - 1 > 0:
                         self.pos_y -= 1
@@ -302,7 +302,7 @@ def running_level(filename):
         level_x, level_y = 0, 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                terminate()
             if event.type == pygame.KEYDOWN:
                 player.update(event)
                 if event.key == pygame.K_DOWN:
@@ -329,18 +329,18 @@ def running_level(filename):
 run_level = None
 run_minimap = None
 run_preview = running_preview()
-RUN_THE_FIRST_TIME = False
-while run_preview != EXIT_FROM_GAME:
-    print(run_minimap, run_preview)
+run_the_first_time = False
+while any((run_level, run_preview, run_minimap)):
+    '''print(run_minimap, run_preview, run_level)'''
     if run_preview == SHOW_MINIMAP:
         run_minimap, run_preview = None, None
         run_minimap = running_minimap()
     elif run_minimap == BACK_TO_MENU:
         run_minimap, run_preview = None, None
         run_preview = running_preview()
-    elif run_minimap == openlevelkey:
-        run_minimap, run_preview = None, None
-        run_level = running_level(openlevelkey)
+    elif isinstance(run_minimap, str):
+        print(run_minimap)
+        run_level = running_level(run_minimap)
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
         break
