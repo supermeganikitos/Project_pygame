@@ -156,13 +156,18 @@ def running_minimap():
 
 def running_level(filename):
     fps = 50
+    moveable = ('R', '#')
+    finish_coord = 0, 0
     size = width, height = 500, 500
     screen = pygame.display.set_mode(size)
     tile_images = {
         'wall': load_image('box.png'),
-        'empty': load_image('grass.png')
+        'empty': load_image('grass.png'),
+        'emptyF': load_image('grass_fin.png'),
+        'rock': load_image('rock.png'),
+        'lava': load_image('lava.png')
     }
-    player_image = load_image('truck.png', -1)
+    player_image = load_image('truck1.png', -1)
 
     tile_width = tile_height = 50
     all_sprites = pygame.sprite.Group()
@@ -224,7 +229,40 @@ def running_level(filename):
             super().__init__(player_group, all_sprites)
             self.image = player_image
             self.rect = self.image.get_rect().move(
-                tile_width * pos_x + 15, tile_height * pos_y + 5)
+                tile_width * pos_x - 5, tile_height * pos_y + 22)
+            self.lvl_map = load_level(filename)
+
+        def find_wall(self, x, y):
+            print(self.lvl_map[1][1])
+            print(self.lvl_map[5][5])
+            try:
+                print(self.lvl_map[y][x - 1])
+                if self.lvl_map[y][x - 1] in moveable and x - 1 > 0:
+                    return True
+            except IndexError:
+                pass
+            try:
+                if self.lvl_map[y][x + 1] in moveable:
+                    return True
+            except IndexError:
+                pass
+            try:
+                if self.lvl_map[y + 1][x + 1] in moveable:
+                    return True
+            except IndexError:
+                pass
+            try:
+                print(self.lvl_map[y + 1][x - 1])
+                if self.lvl_map[y + 1][x - 1] in moveable and x - 1 > 0:
+                    return True
+            except IndexError:
+                pass
+            try:
+                if self.lvl_map[y + 1][x] in moveable:
+                    return True
+            except IndexError:
+                pass
+            return False
 
         def update(self, *args):
             self.ismove_possible = False
@@ -232,29 +270,32 @@ def running_level(filename):
             if args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_LEFT:
                 try:
-                    if load_level(filename)[self.pos_y][self.pos_x - 1] != '#' and self.pos_x - 1 > 0:
+                    if (self.lvl_map[self.pos_y][self.pos_x - 1] not in moveable and self.pos_x - 1 > 0
+                            and self.find_wall(self.pos_x - 1, self.pos_y)):
                         self.pos_x -= 1
                 except IndexError:
                     return
             elif args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_RIGHT:
                 try:
-                    if load_level(filename)[self.pos_y][self.pos_x + 1] != '#':
+                    if (self.lvl_map[self.pos_y][self.pos_x + 1] not in moveable
+                            and self.find_wall(self.pos_x + 1, self.pos_y)):
                         self.pos_x += 1
                 except IndexError:
                     return
             elif args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_UP:
-                print(1)
                 try:
-                    if load_level(filename)[self.pos_y - 1][self.pos_x] != '#' and self.pos_y - 1 > 0:
+                    if (self.lvl_map[self.pos_y - 1][self.pos_x] not in moveable and self.pos_y - 1 > 0
+                            and self.find_wall(self.pos_x, self.pos_y - 1)):
                         self.pos_y -= 1
                 except IndexError:
                     return
             elif args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_DOWN:
                 try:
-                    if load_level(filename)[self.pos_y + 1][self.pos_x] != '#':
+                    if (self.lvl_map[self.pos_y + 1][self.pos_x] not in moveable
+                            and self.find_wall(self.pos_x, self.pos_y + 1)):
                         self.pos_y += 1
                 except IndexError:
                     return
@@ -273,6 +314,15 @@ def running_level(filename):
                 elif level[y][x] == '@':
                     Tile('empty', x, y)
                     new_player = Player(x, y)
+                elif level[y][x] == 'F':
+                    Tile('emptyF', x, y)
+                    finish_coord = x, y
+                elif level[y][x] == 'R':
+                    Tile('rock', x, y)
+                elif level[y][x] == '*':
+                    Tile('lava', x, y)
+                else:
+                    Tile('empty', x, y)
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y
 
