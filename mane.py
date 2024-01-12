@@ -13,6 +13,23 @@ run_the_first_time = True
 pygame.init()
 
 
+class End(pygame.sprite.Sprite):
+    image = load_image("gameover.png")
+
+    def __init__(self, *group):
+        # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
+        # Это очень важно!!!
+        super().__init__(*group)
+        self.image = End.image
+        self.rect = self.image.get_rect()
+        self.rect.x = -600
+        self.rect.y = 0
+
+    def update(self, *args):
+        if self.rect.x != 0:
+            self.rect = self.rect.move(1, 0)
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -157,7 +174,7 @@ def running_minimap():
 def running_level(filename):
     fps = 50
     moveable = ('R', '#')
-    finish_coord = 0, 0
+    finish_coord = (0, 0)
     size = width, height = 500, 500
     screen = pygame.display.set_mode(size)
     tile_images = {
@@ -202,6 +219,20 @@ def running_level(filename):
             pygame.display.flip()
             clock.tick(fps)
 
+    def end_screen():
+        allsprites = pygame.sprite.Group()
+        runing = True
+        End(allsprites)
+        while runing:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    runing = False
+            allsprites.update()
+            allsprites.draw(screen)
+            pygame.display.flip()
+            time_.tick(fps)
+        pygame.quit()
+
     def load_level(filename):
         filename = "data/" + filename
         try:
@@ -227,16 +258,20 @@ def running_level(filename):
             self.pos_x = pos_x
             self.pos_y = pos_y
             super().__init__(player_group, all_sprites)
+            self.current_moves = 0
             self.image = player_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x - 5, tile_height * pos_y + 22)
             self.lvl_map = load_level(filename)
 
+        def get_coords(self):
+            return self.pos_x, self.pos_y
+
+        def get_distance(self):
+            return self.current_moves
+
         def find_wall(self, x, y):
-            print(self.lvl_map[1][1])
-            print(self.lvl_map[5][5])
             try:
-                print(self.lvl_map[y][x - 1])
                 if self.lvl_map[y][x - 1] in moveable and x - 1 > 0:
                     return True
             except IndexError:
@@ -299,11 +334,12 @@ def running_level(filename):
                         self.pos_y += 1
                 except IndexError:
                     return
-            print((old_x, old_y), (self.pos_x, self.pos_y))
             if (old_x, old_y) != (self.pos_x, self.pos_y):
+                self.current_moves += 1
                 self.ismove_possible = True
 
     def generate_level(level):
+        nonlocal finish_coord
         new_player, x, y = None, None, None
         for y in range(len(level)):
             for x in range(len(level[y])):
@@ -315,8 +351,8 @@ def running_level(filename):
                     Tile('empty', x, y)
                     new_player = Player(x, y)
                 elif level[y][x] == 'F':
+                    finish_coord = (x, y)
                     Tile('emptyF', x, y)
-                    finish_coord = x, y
                 elif level[y][x] == 'R':
                     Tile('rock', x, y)
                 elif level[y][x] == '*':
@@ -363,7 +399,7 @@ def running_level(filename):
                     level_x = tile_width
                 if event.key == pygame.K_RIGHT:
                     level_x = -tile_width
-
+                print(player.get_coords(), finish_coord)
         if player.ismove_possible:
             camera.update(level_x, level_y)
             for sprite in tiles_group:
@@ -371,8 +407,12 @@ def running_level(filename):
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
         player_group.draw(screen)
+        if player.get_coords() == finish_coord:
+            print(player.get_distance())
+            break
         pygame.display.flip()
         time_.tick(fps)
+    end_screen()
     pygame.quit()
 
 
@@ -389,7 +429,6 @@ while any((run_level, run_preview, run_minimap)):
         run_minimap, run_preview = None, None
         run_preview = running_preview()
     elif isinstance(run_minimap, str):
-        print(run_minimap)
         run_level = running_level(run_minimap)
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
