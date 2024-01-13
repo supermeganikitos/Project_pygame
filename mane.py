@@ -39,7 +39,7 @@ def running_preview():
     pygame.display.set_caption('simulator truck')
     group_preview = pygame.sprite.Group()
     pygame.mixer.music.load('data/autro.mp3')
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
     play = SimpleButton(group_preview, 500, 290, 600, 100, pygame.Color('white'), text='play new')
     save = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='return to last save')
@@ -67,13 +67,10 @@ def running_preview():
                 if res or res1:
                     flag = True
                     break
-        for i in pygame.event.get():
-            if i.type == pygame.QUIT:
-                sys.exit()
-            elif i.type == pygame.KEYUP:
-                if i.key == pygame.K_1:
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_1:
                     pygame.mixer.music.pause()
-                elif i.key == pygame.K_2:
+                elif event.key == pygame.K_2:
                     pygame.mixer.music.unpause()
         if flag:
             break
