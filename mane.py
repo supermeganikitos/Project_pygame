@@ -39,7 +39,7 @@ def running_preview():
     pygame.display.set_caption('simulator truck')
     group_preview = pygame.sprite.Group()
     pygame.mixer.music.load('data/autro.mp3')
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
     play = SimpleButton(group_preview, 500, 290, 600, 100, pygame.Color('white'), text='play new')
     save = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='return to last save')
