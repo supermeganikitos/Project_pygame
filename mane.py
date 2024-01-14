@@ -13,12 +13,41 @@ run_the_first_time = True
 pygame.init()
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__()
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def get_cur_frame(self):
+        return self.image
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 class End(pygame.sprite.Sprite):
     image = load_image("gameover.png")
 
-    def __init__(self, distance, dest, *group):
+    def __init__(self, distance, dest, *group, win=True):
         super().__init__(*group)
+        self.c = 0
         self.image = End.image
+        if win:
+            self.salut = AnimatedSprite(load_image('salut.jpg', -1), 3, 3, 150, 150)
         self.rect = self.image.get_rect()
         self.rect.x = -600
         self.rect.y = 0
@@ -35,6 +64,11 @@ class End(pygame.sprite.Sprite):
         self.image.blit(string_rendered, intro_rect)
 
     def update(self, *args):
+        self.c += 1
+        self.c //= 5
+        if self.c % 5 == 0:
+            self.salut.update()
+            self.image.blit(self.salut.get_cur_frame(), (0, 0))
         if self.rect.x != 0:
             self.rect = self.rect.move(1, 0)
 
@@ -436,7 +470,6 @@ def running_level(filename):
         all_sprites.draw(screen)
         player_group.draw(screen)
         if player.get_coords() == finish_coord:
-            str(player.get_distance())
             break
         pygame.display.flip()
         time_.tick(fps)
