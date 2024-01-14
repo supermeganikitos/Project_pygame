@@ -16,14 +16,23 @@ pygame.init()
 class End(pygame.sprite.Sprite):
     image = load_image("gameover.png")
 
-    def __init__(self, *group):
-        # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
-        # Это очень важно!!!
+    def __init__(self, distance, dest, *group):
         super().__init__(*group)
         self.image = End.image
         self.rect = self.image.get_rect()
         self.rect.x = -600
         self.rect.y = 0
+        font = pygame.font.Font('Australianflyingcorpsstencilsh.ttf', 30)
+        string_rendered = font.render(distance, True, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.x = 154
+        intro_rect.y = 358
+        self.image.blit(string_rendered, intro_rect)
+        string_rendered = font.render(str(dest), True, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.x = 238
+        intro_rect.y = 401
+        self.image.blit(string_rendered, intro_rect)
 
     def update(self, *args):
         if self.rect.x != 0:
@@ -158,7 +167,7 @@ def running_minimap():
                 for i in connected_destinations.keys():
                     res = i.update(event)
                     if res and i in connected_destinations[current_destination]:
-                        openlevelkey = roads_files[(i, current_destination)]
+                        openlevelkey = (roads_files[(i, current_destination)], i.text, current_destination.text)
                         break
                     elif res and i not in connected_destinations[current_destination]:
                         print(False)
@@ -202,7 +211,8 @@ def running_level(filename):
     def start_screen():
         intro_text = ["ЗАСТАВКА", "",
                       "Правила игры",
-                      "Доехать до пункта назначения"]
+                      "Доехать до пункта назначения,",
+                      "и не умереть!!!!!"]
 
         fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
         screen.blit(fon, (0, 0))
@@ -227,10 +237,10 @@ def running_level(filename):
             pygame.display.flip()
             clock.tick(fps)
 
-    def end_screen():
+    def end_screen(dist, destination_):
         allsprites = pygame.sprite.Group()
         runing = True
-        End(allsprites)
+        End(dist, destination_, allsprites)
         while runing:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -241,10 +251,10 @@ def running_level(filename):
             time_.tick(fps)
         pygame.quit()
 
-    def load_level(filename):
-        filename = "data/" + filename
+    def load_level(file_name):
+        file_name = "data/" + file_name
         try:
-            with open(filename, 'r') as mapFile:
+            with open(file_name, 'r') as mapFile:
                 level_map = [line.strip() for line in mapFile]
             max_width = max(map(len, level_map))
             return list(map(lambda x: x.ljust(max_width, '.'), level_map))
@@ -270,7 +280,7 @@ def running_level(filename):
             self.image = player_image
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x - 5, tile_height * pos_y + 22)
-            self.lvl_map = load_level(filename)
+            self.lvl_map = load_level(filename[0])
 
         def get_coords(self):
             return self.pos_x, self.pos_y
@@ -307,6 +317,11 @@ def running_level(filename):
                 pass
             return False
 
+        def func(self, old_x, old_y):
+            if (old_x, old_y) != (self.pos_x, self.pos_y):
+                self.current_moves += 1
+                self.ismove_possible = True
+
         def update(self, *args):
             self.ismove_possible = False
             old_x, old_y = (self.pos_x, self.pos_y)
@@ -318,7 +333,9 @@ def running_level(filename):
                         self.pos_x -= 1
                 except IndexError:
                     return
-            elif args and args[0].type == pygame.KEYDOWN and \
+                self.func(old_x, old_y)
+                return
+            if args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_RIGHT:
                 try:
                     if (self.lvl_map[self.pos_y][self.pos_x + 1] not in moveable
@@ -326,7 +343,9 @@ def running_level(filename):
                         self.pos_x += 1
                 except IndexError:
                     return
-            elif args and args[0].type == pygame.KEYDOWN and \
+                self.func(old_x, old_y)
+                return
+            if args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_UP:
                 try:
                     if (self.lvl_map[self.pos_y - 1][self.pos_x] not in moveable and self.pos_y - 1 > 0
@@ -334,7 +353,9 @@ def running_level(filename):
                         self.pos_y -= 1
                 except IndexError:
                     return
-            elif args and args[0].type == pygame.KEYDOWN and \
+                self.func(old_x, old_y)
+                return
+            if args and args[0].type == pygame.KEYDOWN and \
                     args[0].key == pygame.K_DOWN:
                 try:
                     if (self.lvl_map[self.pos_y + 1][self.pos_x] not in moveable
@@ -342,9 +363,8 @@ def running_level(filename):
                         self.pos_y += 1
                 except IndexError:
                     return
-            if (old_x, old_y) != (self.pos_x, self.pos_y):
-                self.current_moves += 1
-                self.ismove_possible = True
+                self.func(old_x, old_y)
+                return
 
     def generate_level(level):
         nonlocal finish_coord
@@ -388,7 +408,7 @@ def running_level(filename):
 
     camera = Camera()
 
-    player, level__x, level__y = generate_level(load_level(filename))
+    player, level__x, level__y = generate_level(load_level(filename[0]))
     start_screen()
     running = True
     time_ = pygame.time.Clock()
@@ -416,11 +436,11 @@ def running_level(filename):
         all_sprites.draw(screen)
         player_group.draw(screen)
         if player.get_coords() == finish_coord:
-            print(player.get_distance())
+            str(player.get_distance())
             break
         pygame.display.flip()
         time_.tick(fps)
-    end_screen()
+    end_screen(str(player.get_distance()), filename[1])
     pygame.quit()
 
 
@@ -436,7 +456,7 @@ while any((run_level, run_preview, run_minimap)):
     elif run_minimap == BACK_TO_MENU:
         run_minimap, run_preview = None, None
         run_preview = running_preview()
-    elif isinstance(run_minimap, str):
+    elif isinstance(run_minimap, tuple):
         run_level = running_level(run_minimap)
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
