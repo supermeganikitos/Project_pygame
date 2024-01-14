@@ -55,7 +55,7 @@ def start_screen():
     text_coord = 50
     clock = pygame.time.Clock()
     for line in intro_text:
-        string_rendered = font.render(line, True, pygame.Color('black'))
+        string_rendered = font.render(line, True, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
