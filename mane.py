@@ -43,12 +43,14 @@ class AnimatedSprite(pygame.sprite.Sprite):
 class End(pygame.sprite.Sprite):
     image = load_image("gameover.png")
 
-    def __init__(self, distance, dest, *group, win=True):
+    def __init__(self, distance, dest, win=True, *group):
         super().__init__(*group)
         self.c = 0
         self.image = End.image
         if win:
             self.salut = AnimatedSprite(load_image('salut.jpg', -1), 3, 3, 150, 150)
+        else:
+            self.salut = None
         self.rect = self.image.get_rect()
         self.rect.x = -600
         self.rect.y = 0
@@ -65,11 +67,12 @@ class End(pygame.sprite.Sprite):
         self.image.blit(string_rendered, intro_rect)
 
     def update(self, *args):
-        self.c += 1
-        self.c //= 5
-        if self.c % 5 == 0:
-            self.salut.update()
-            self.image.blit(self.salut.get_cur_frame(), (0, 0))
+        if self.salut:
+            self.c += 1
+            self.c //= 5
+            if self.c % 5 == 0:
+                self.salut.update()
+                self.image.blit(self.salut.get_cur_frame(), (0, 0))
         if self.rect.x != 0:
             self.rect = self.rect.move(1, 0)
 
@@ -315,12 +318,12 @@ def running_level(filename):
             pygame.display.flip()
             clock.tick(FPS)
 
-    def end_screen(dist, destination_):
+    def end_screen(dist, destination_, win=True):
         allsprites = pygame.sprite.Group()
         runing = True
         pygame.mixer.music.load('data/intro lobby.mp3')
         pygame.mixer.music.play(-1)
-        End(dist, destination_, allsprites)
+        End(dist, destination_, win, allsprites)
         while runing:
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
@@ -548,7 +551,7 @@ def running_level(filename):
     if f:
         end_screen(str(player.get_distance()), filename[1])
     else:
-        end_screen(str(player.get_distance()), filename[2], wi)
+        end_screen(str(player.get_distance()), filename[2], win=False)
     pygame.quit()
 
 
