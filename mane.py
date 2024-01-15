@@ -339,6 +339,16 @@ def running_level(filename):
         pygame.quit()
 
     def load_level(file_name):
+        qwerty = {'1-2.txt': '1.mp3',
+                  '1-5.txt': '2.mp3',
+                  '1-6.txt': '3.mp3',
+                  '1-7.txt': '4.mp3',
+                  '3-2.txt': '5.mp3',
+                  '4-5.txt': '6.mp3',
+                  '4-3.txt': '7.mp3',
+                  '5-7.txt': '8.mp3',
+                  '6-7.txt': '9.mp3',
+                  '6-5.txt': '10.mp3'}
         file_name = "data/" + file_name
         try:
             with open(file_name, 'r') as mapFile:
@@ -495,15 +505,22 @@ def running_level(filename):
 
     camera = Camera()
 
-    player, level__x, level__y = generate_level(load_level(filename[0]))
+    player, level__x, level__y = generate_level(load_level(c[0]))
     start_screen()
     running = True
+    pygame.mixer.music.load('data/'+str(qwerty[file_name]))
+    pygame.mixer.music.play(-1)
     time_ = pygame.time.Clock()
     while running:
         level_x, level_y = 0, 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_9:
+                    pygame.mixer.music.pause()
+                elif event.key == pygame.K_0:
+                    pygame.mixer.music.unpause()
             if event.type == pygame.KEYDOWN:
                 player.update(event)
                 if event.key == pygame.K_DOWN:
