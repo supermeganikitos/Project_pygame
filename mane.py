@@ -2,7 +2,7 @@ import sys
 import os
 import pygame
 import csv
-from trucks import Truck, trucks, SimpleButton, load_image, set_backround
+from trucks import Truck, trucks, SimpleButton, load_image, set_backround, Bomb
 
 FPS = 50
 SHOW_MINIMAP = 1
@@ -343,7 +343,6 @@ def running_level(filename):
             time_.tick(FPS)
         pygame.mixer.music.stop()
 
-
     def load_level(file_name):
         file_name = "data/" + file_name
         try:
@@ -480,6 +479,8 @@ def running_level(filename):
                     Tile('tree', x, y)
                 elif level[y][x] == '*':
                     Tile('lava', x, y)
+                elif level[y][x] == 'B':
+                    Tile('empty', x, y)
                 else:
                     Tile('empty', x, y)
         # вернем игрока, а также размер поля в клетках
