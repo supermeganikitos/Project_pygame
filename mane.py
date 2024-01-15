@@ -281,7 +281,9 @@ def running_level(filename):
         'empty': load_image('grass.png'),
         'emptyF': load_image('grass_fin.png'),
         'rock': load_image('rock.png'),
-        'lava': load_image('lava.png')
+        'lava': load_image('lava.png'),
+        'tree': load_image('tree.png')
+
     }
     player_image = load_image('truck1.png', -1)
 
@@ -473,6 +475,8 @@ def running_level(filename):
                     Tile('emptyF', x, y)
                 elif level[y][x] == 'R':
                     Tile('rock', x, y)
+                elif level[y][x] == 'T':
+                    Tile('tree', x, y)
                 elif level[y][x] == '*':
                     Tile('lava', x, y)
                 else:
