@@ -348,6 +348,7 @@ def running_level(filename):
                   '5-7.txt': '8.mp3',
                   '6-7.txt': '9.mp3',
                   '6-5.txt': '10.mp3'}
+        qwert = file_name
         file_name = "data/" + file_name
         try:
             with open(file_name, 'r') as mapFile:
@@ -504,10 +505,10 @@ def running_level(filename):
 
     camera = Camera()
 
-    player, level__x, level__y = generate_level(load_level(c[0]))
+    player, level__x, level__y = generate_level(load_level(filename[0]))
     start_screen()
     running = True
-    pygame.mixer.music.load('data/'+str(qwerty[file_name]))
+    pygame.mixer.music.load('data/'+str(qwerty[qwert]))
     pygame.mixer.music.play(-1)
     time_ = pygame.time.Clock()
     f = None
