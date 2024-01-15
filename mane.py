@@ -135,6 +135,7 @@ def running_preview():
                     pygame.mixer.music.unpause()
         if flag:
             break
+        screen.fill((0, 0, 0))
         trucks.update()
         trucks.draw(screen)
         draw_(screen, 'Truck simulator', width, height, delta_frame=10, width_frame=10)
