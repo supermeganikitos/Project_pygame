@@ -1,7 +1,7 @@
-import pygame
 import sys
 import os
-from trucks import Truck, trucks, SimpleButton, load_image
+import pygame
+from trucks import Truck, trucks, SimpleButton, load_image, set_backround
 
 FPS = 50
 SHOW_MINIMAP = 1
@@ -48,6 +48,7 @@ class End(pygame.sprite.Sprite):
         self.c = 0
         self.image = End.image
         if win:
+            set_backround('salut.jpg')
             self.salut = AnimatedSprite(load_image('salut.jpg', -1), 3, 3, 150, 150)
         else:
             self.salut = None
@@ -69,10 +70,10 @@ class End(pygame.sprite.Sprite):
     def update(self, *args):
         if self.salut:
             self.c += 1
-            self.c //= 5
-            if self.c % 5 == 0:
+            self.c //= 50
+            if self.c % 50 == 0:
                 self.salut.update()
-                self.image.blit(self.salut.get_cur_frame(), (0, 0))
+                self.image.blit(self.salut.get_cur_frame(), (350, 350))
         if self.rect.x != 0:
             self.rect = self.rect.move(1, 0)
 
@@ -341,17 +342,6 @@ def running_level(filename):
         pygame.quit()
 
     def load_level(file_name):
-        qwerty = {'1-2.txt': '1.mp3',
-                  '1-5.txt': '2.mp3',
-                  '1-6.txt': '3.mp3',
-                  '1-7.txt': '4.mp3',
-                  '3-2.txt': '5.mp3',
-                  '4-5.txt': '6.mp3',
-                  '4-3.txt': '7.mp3',
-                  '5-7.txt': '8.mp3',
-                  '6-7.txt': '9.mp3',
-                  '6-5.txt': '10.mp3'}
-        qwert = file_name
         file_name = "data/" + file_name
         try:
             with open(file_name, 'r') as mapFile:
@@ -511,7 +501,18 @@ def running_level(filename):
     player, level__x, level__y = generate_level(load_level(filename[0]))
     start_screen()
     running = True
-    pygame.mixer.music.load('data/'+str(qwerty[qwert]))
+    qwerty = {'1-2.txt': '1.mp3',
+              '1-5.txt': '2.mp3',
+              '1-6.txt': '3.mp3',
+              '1-7.txt': '4.mp3',
+              '3-2.txt': '5.mp3',
+              '4-5.txt': '6.mp3',
+              '4-3.txt': '7.mp3',
+              '5-7.txt': '8.mp3',
+              '6-7.txt': '9.mp3',
+              '6-5.txt': '10.mp3'}
+    qwert = qwerty[filename[0]]
+    pygame.mixer.music.load('data/' + qwert)
     pygame.mixer.music.play(-1)
     time_ = pygame.time.Clock()
     f = None
@@ -550,8 +551,15 @@ def running_level(filename):
         time_.tick(FPS)
     if f:
         end_screen(str(player.get_distance()), filename[1])
+        row = (str(player.get_distance()), filename[1])
     else:
         end_screen(str(player.get_distance()), filename[2], win=False)
+        row = (str(player.get_distance()), filename[2])
+    with open('results.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(
+            csvfile, delimiter=';', quotechar='"',
+            quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(row)
     pygame.quit()
 
 

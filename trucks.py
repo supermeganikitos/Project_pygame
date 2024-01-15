@@ -1,11 +1,29 @@
 import pygame
 import os
 import sys
+from PIL import Image
 
 trucks = pygame.sprite.Group()
 pygame.init()
 size = width, height = 1550, 800
 screen = pygame.display.set_mode(size)
+
+
+def set_backround(name):
+    fullname = os.path.join('data', name)
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    im = Image.open(fullname)
+    pixels = im.load()
+    x, y = im.size
+    for i in range(x):
+        for j in range(y):
+            r, g, b = pixels[i, j]
+            if r + g + b <= 100:
+                pixels[i, j] = (255, 255, 255)
+    im.save(fullname)
 
 
 def load_image(name, colorkey=None):
@@ -66,6 +84,13 @@ class SimpleButton(pygame.sprite.Sprite):
             text = font.render(self.text, 1, (0, 0, 0))
             win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
                             self.y + (self.height / 2 - text.get_height() / 2)))
+
+    def set_text(self, text):
+        self.text = text
+        font = pygame.font.SysFont('comicsans', self.font_size)
+        text = font.render(self.text, 1, (0, 0, 0))
+        win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
+                        self.y + (self.height / 2 - text.get_height() / 2)))
 
     def update(self, *args):
         if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
