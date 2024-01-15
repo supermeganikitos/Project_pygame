@@ -128,9 +128,9 @@ def running_preview():
                     flag = True
                     break
             elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_1:
+                if event.key == pygame.K_a:
                     pygame.mixer.music.pause()
-                elif event.key == pygame.K_2:
+                elif event.key == pygame.K_q:
                     pygame.mixer.music.unpause()
         if flag:
             break
@@ -144,17 +144,61 @@ def running_preview():
         clock.tick(10)
         pygame.display.flip()
     if res:
+        pygame.mixer.music.stop()
         return SHOW_MINIMAP
     if res1:
         return EXIT_FROM_GAME
 
 
 def running_minimap():
+    fps = 50
+
+    def start_screen():
+        intro_text = ['Выберите начальную точку:',
+                      ' moscow: 1',
+                      'kazan: 2',
+                      'saratov: 3',
+                      'samara: 4',
+                      'tyla: 5', 'penza: 6', 'piter: 7']
+
+        fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+        screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 30)
+        text_coord = 0
+        time_count = pygame.time.Clock()
+        for line in intro_text:
+            string_rendered = font.render(line, True, pygame.Color('black'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 10
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        while True:
+            for event_ in pygame.event.get():
+                if event_.type == pygame.QUIT:
+                    terminate()
+                elif event_.type == pygame.KEYDOWN or \
+                        event_.type == pygame.MOUSEBUTTONDOWN:
+                    if event_.key == pygame.K_1:
+                        return '1'
+                    if event_.key == pygame.K_2:
+                        return '2'
+                    if event_.key == pygame.K_3:
+                        return '3'
+                    if event_.key == pygame.K_4:
+                        return '4'
+                    if event_.key == pygame.K_5:
+                        return '5'
+                    if event_.key == pygame.K_6:
+                        return '6'
+                    if event_.key == pygame.K_7:
+                        return '7'
+            pygame.display.flip()
+            time_count.tick(fps)
     size = width, height = 550, 690
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('simulator truck')
-    bg = pygame.image.load("Roads.png")
-    screen.blit(bg, (0, 0))
     clock = pygame.time.Clock()
     runningminimap = True
     dest = pygame.sprite.Group()
@@ -167,11 +211,10 @@ def running_minimap():
     penza = SimpleButton(dest, 380, 445, 40, 25, pygame.Color('yellow'), text='Penza', font_size=10)
     piter = SimpleButton(dest, 500, 425, 40, 25, pygame.Color('yellow'), text='Piter', font_size=10)
     dests = {1: moscow, 2: kazan, 3: saratov, 4: samara, 5: tyla, 6: penza, 7: piter}
-    current_destination = (
-        input('Выберите начальную точку: moscow: 1, kazan: 2, saratov: 3, samara: 4, tyla: 5, penza: 6, piter: 7'))
-    while current_destination not in '1234567':
-        current_destination = (
-            input('Выберите начальную точку: moscow: 1, kazan: 2, saratov: 3, samara: 4, tyla: 5, penza: 6, piter: 7'))
+    if run_the_first_time:
+        current_destination = (start_screen())
+    else:
+        current_destination = (start_screen())
     current_destination = dests[int(current_destination)]
     connected_destinations = {moscow: (piter, penza, samara, kazan),
                               kazan: (saratov, moscow),
@@ -193,6 +236,9 @@ def running_minimap():
     flag = False
     q_or_not = False
     openlevelkey = False
+    screen.fill((0, 0, 0))
+    bg = pygame.image.load("Roads.png")
+    screen.blit(bg, (0, 0))
     while runningminimap:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -276,8 +322,8 @@ def running_level(filename):
         runing = True
         End(dist, destination_, allsprites)
         while runing:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+            for event_1 in pygame.event.get():
+                if event_1.type == pygame.QUIT:
                     runing = False
             allsprites.update()
             allsprites.draw(screen)
@@ -293,7 +339,7 @@ def running_level(filename):
             max_width = max(map(len, level_map))
             return list(map(lambda x: x.ljust(max_width, '.'), level_map))
         except FileNotFoundError:
-            val = ['.....' for i in range(5)]
+            val = ['.....' for _ in range(5)]
             val[0] = '@....'
             return val
 
@@ -480,12 +526,12 @@ def running_level(filename):
 run_level = None
 run_minimap = None
 run_preview = running_preview()
-run_the_first_time = False
+run_the_first_time = True
 while any((run_level, run_preview, run_minimap)):
     '''print(run_minimap, run_preview, run_level)'''
     if run_preview == SHOW_MINIMAP:
         run_minimap, run_preview = None, None
-        run_minimap = running_minimap()
+        run_minimap = running_minimap(run_the_first_time)
     elif run_minimap == BACK_TO_MENU:
         run_minimap, run_preview = None, None
         run_preview = running_preview()
@@ -494,3 +540,4 @@ while any((run_level, run_preview, run_minimap)):
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
         break
+    run_the_first_time = True
