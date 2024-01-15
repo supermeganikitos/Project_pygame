@@ -3,6 +3,7 @@ import sys
 import os
 from trucks import Truck, trucks, SimpleButton, load_image
 
+FPS = 50
 SHOW_MINIMAP = 1
 SHOW_PREWIEW = 2
 SHOW_ROAD = 3
@@ -151,8 +152,6 @@ def running_preview():
 
 
 def running_minimap():
-    fps = 50
-
     def start_screen():
         intro_text = ['Выберите начальную точку:',
                       ' moscow: 1',
@@ -167,7 +166,7 @@ def running_minimap():
         text_coord = 0
         time_count = pygame.time.Clock()
         for line in intro_text:
-            string_rendered = font.render(line, True, pygame.Color('black'))
+            string_rendered = font.render(line, True, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
             text_coord += 10
             intro_rect.top = text_coord
@@ -195,7 +194,7 @@ def running_minimap():
                     if event_.key == pygame.K_7:
                         return '7'
             pygame.display.flip()
-            time_count.tick(fps)
+            time_count.tick(FPS)
     size = width, height = 550, 690
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('simulator truck')
@@ -269,7 +268,6 @@ def running_minimap():
 
 
 def running_level(filename):
-    fps = 50
     moveable = ('R', '#')
     finish_coord = (0, 0)
     size = width, height = 500, 500
@@ -315,7 +313,7 @@ def running_level(filename):
                         event_.type == pygame.MOUSEBUTTONDOWN:
                     return  # начинаем игру
             pygame.display.flip()
-            clock.tick(fps)
+            clock.tick(FPS)
 
     def end_screen(dist, destination_):
         allsprites = pygame.sprite.Group()
@@ -335,7 +333,7 @@ def running_level(filename):
             allsprites.update()
             allsprites.draw(screen)
             pygame.display.flip()
-            time_.tick(fps)
+            time_.tick(FPS)
         pygame.mixer.music.stop()
         pygame.quit()
 
@@ -539,7 +537,7 @@ while any((run_level, run_preview, run_minimap)):
     '''print(run_minimap, run_preview, run_level)'''
     if run_preview == SHOW_MINIMAP:
         run_minimap, run_preview = None, None
-        run_minimap = running_minimap(run_the_first_time)
+        run_minimap = running_minimap()
     elif run_minimap == BACK_TO_MENU:
         run_minimap, run_preview = None, None
         run_preview = running_preview()
@@ -548,4 +546,4 @@ while any((run_level, run_preview, run_minimap)):
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
         break
-    run_the_first_time = True
+    run_the_first_time = False
