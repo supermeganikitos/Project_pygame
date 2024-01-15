@@ -525,7 +525,7 @@ def running_level(filename):
         if player.get_coords() == finish_coord:
             break
         pygame.display.flip()
-        time_.tick(fps)
+        time_.tick(FPS)
     end_screen(str(player.get_distance()), filename[1])
     pygame.quit()
 
