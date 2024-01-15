@@ -300,7 +300,7 @@ def running_level(filename):
         text_coord = 50
         clock = pygame.time.Clock()
         for line in intro_text:
-            string_rendered = font.render(line, True, pygame.Color('black'))
+            string_rendered = font.render(line, True, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
             text_coord += 10
             intro_rect.top = text_coord
@@ -320,15 +320,23 @@ def running_level(filename):
     def end_screen(dist, destination_):
         allsprites = pygame.sprite.Group()
         runing = True
+        pygame.mixer.music.load('data/intro lobby.mp3')
+        pygame.mixer.music.play(-1)
         End(dist, destination_, allsprites)
         while runing:
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
                     runing = False
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_a:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_d:
+                        pygame.mixer.music.unpause()
             allsprites.update()
             allsprites.draw(screen)
             pygame.display.flip()
             time_.tick(fps)
+        pygame.mixer.music.stop()
         pygame.quit()
 
     def load_level(file_name):
