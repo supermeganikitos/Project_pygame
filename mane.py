@@ -130,7 +130,7 @@ def running_preview():
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
                     pygame.mixer.music.pause()
-                elif event.key == pygame.K_q:
+                elif event.key == pygame.K_d:
                     pygame.mixer.music.unpause()
         if flag:
             break
