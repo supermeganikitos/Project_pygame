@@ -1,6 +1,7 @@
 import sys
 import os
 import pygame
+import csv
 from trucks import Truck, trucks, SimpleButton, load_image, set_backround
 
 FPS = 50
@@ -72,6 +73,7 @@ class End(pygame.sprite.Sprite):
             self.c += 1
             self.c //= 50
             if self.c % 50 == 0:
+                self.image.fill((255, 255, 255), (350, 350, 150, 150))
                 self.salut.update()
                 self.image.blit(self.salut.get_cur_frame(), (350, 350))
         if self.rect.x != 0:
@@ -125,7 +127,7 @@ def running_preview():
     while runningpreview:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                 terminate()
+                terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 res = mimapbtn.update(event)
                 res1 = quitq.update(event)
@@ -282,8 +284,7 @@ def running_level(filename):
         'emptyF': load_image('grass_fin.png'),
         'rock': load_image('rock.png'),
         'lava': load_image('lava.png'),
-        'tree': load_image('tree.png')
-
+        'tree': load_image('tree.png', -1)
     }
     player_image = load_image('truck1.png', -1)
 
@@ -520,6 +521,8 @@ def running_level(filename):
     pygame.mixer.music.play(-1)
     time_ = pygame.time.Clock()
     f = None
+    gr_1 = pygame.sprite.Group()
+    time_wid = SimpleButton(gr_1, 450, 0, 50, 20, text='')
     while running:
         level_x, level_y = 0, 0
         for event in pygame.event.get():
@@ -546,19 +549,24 @@ def running_level(filename):
             for sprite in tiles_group:
                 camera.apply(sprite)
         screen.fill((0, 0, 0))
+
         all_sprites.draw(screen)
         player_group.draw(screen)
+        ticks = pygame.time.get_ticks()
+        time_wid.set_text(str(ticks / 1000), screen)
+        time_wid.draw(screen)
         if player.get_coords() == finish_coord:
             f = True
             break
         pygame.display.flip()
         time_.tick(FPS)
+
     if f:
         end_screen(str(player.get_distance()), filename[1])
-        row = (str(player.get_distance()), filename[1])
+        row = (str(player.get_distance()), filename[1], time_wid.get_text())
     else:
         end_screen(str(player.get_distance()), filename[2], win=False)
-        row = (str(player.get_distance()), filename[2])
+        row = (str(player.get_distance()), filename[2], time_wid.get_text())
     with open('results.csv', 'w', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
