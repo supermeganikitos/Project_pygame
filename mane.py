@@ -342,7 +342,7 @@ def running_level(filename):
             pygame.display.flip()
             time_.tick(FPS)
         pygame.mixer.music.stop()
-        pygame.quit()
+
 
     def load_level(file_name):
         file_name = "data/" + file_name
@@ -563,10 +563,10 @@ def running_level(filename):
 
     if f:
         end_screen(str(player.get_distance()), filename[1])
-        row = (str(player.get_distance()), filename[1], time_wid.get_text())
+        row = (str(player.get_distance()), filename[1], time_wid.get_text(), 'win')
     else:
         end_screen(str(player.get_distance()), filename[2], win=False)
-        row = (str(player.get_distance()), filename[2], time_wid.get_text())
+        row = (str(player.get_distance()), filename[2], time_wid.get_text(), 'lose')
     with open('results.csv', 'w', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
@@ -582,13 +582,15 @@ run_the_first_time = True
 while any((run_level, run_preview, run_minimap)):
     '''print(run_minimap, run_preview, run_level)'''
     if run_preview == SHOW_MINIMAP:
-        run_minimap, run_preview = None, None
+        run_minimap, run_preview, run_level = None, None, None
         run_minimap = running_minimap()
     elif run_minimap == BACK_TO_MENU:
-        run_minimap, run_preview = None, None
+        run_minimap, run_preview, run_level = None, None, None
         run_preview = running_preview()
     elif isinstance(run_minimap, tuple):
+        run_preview, run_level = None, None
         run_level = running_level(run_minimap)
+        run_minimap = None
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
         pygame.quit()
         break
