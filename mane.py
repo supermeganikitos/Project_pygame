@@ -129,9 +129,9 @@ def running_preview():
                     flag = True
                     break
             elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_a:
+                if event.key == pygame.K_9:
                     pygame.mixer.music.pause()
-                elif event.key == pygame.K_d:
+                elif event.key == pygame.K_0:
                     pygame.mixer.music.unpause()
         if flag:
             break
@@ -178,8 +178,7 @@ def running_minimap():
             for event_ in pygame.event.get():
                 if event_.type == pygame.QUIT:
                     terminate()
-                elif event_.type == pygame.KEYDOWN or \
-                        event_.type == pygame.MOUSEBUTTONDOWN:
+                elif event_.type == pygame.KEYDOWN:
                     if event_.key == pygame.K_1:
                         return '1'
                     if event_.key == pygame.K_2:
@@ -326,10 +325,10 @@ def running_level(filename):
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
                     runing = False
-                elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_a:
+                if event_1.type == pygame.KEYDOWN:
+                    if event_1.key == pygame.K_9:
                         pygame.mixer.music.pause()
-                    elif event.key == pygame.K_d:
+                    elif event_1.key == pygame.K_0:
                         pygame.mixer.music.unpause()
             allsprites.update()
             allsprites.draw(screen)
@@ -499,6 +498,7 @@ def running_level(filename):
     start_screen()
     running = True
     time_ = pygame.time.Clock()
+    f = None
     while running:
         level_x, level_y = 0, 0
         for event in pygame.event.get():
@@ -523,10 +523,14 @@ def running_level(filename):
         all_sprites.draw(screen)
         player_group.draw(screen)
         if player.get_coords() == finish_coord:
+            f = True
             break
         pygame.display.flip()
-        time_.tick(fps)
-    end_screen(str(player.get_distance()), filename[1])
+        time_.tick(FPS)
+    if f:
+        end_screen(str(player.get_distance()), filename[1])
+    else:
+        end_screen(str(player.get_distance()), filename[2], wi)
     pygame.quit()
 
 
