@@ -216,11 +216,12 @@ def running_minimap():
     penza = SimpleButton(dest, 380, 445, 40, 25, pygame.Color('yellow'), text='Penza', font_size=10)
     piter = SimpleButton(dest, 500, 425, 40, 25, pygame.Color('yellow'), text='Piter', font_size=10)
     dests = {1: moscow, 2: kazan, 3: saratov, 4: samara, 5: tyla, 6: penza, 7: piter}
-    if run_the_first_time:
-        current_destination = (start_screen())
+    with open('data/dest.txt', encoding='UTF-8') as f:
+        f = [int(i.strip()) for i in f.readlines()]
+    if run_the_first_time and not f:
+        current_destination = dests[int(start_screen())]
     else:
-        current_destination = (start_screen())
-    current_destination = dests[int(current_destination)]
+        current_destination = dests[f[-1]]
     connected_destinations = {moscow: (piter, penza, samara, kazan),
                               kazan: (saratov, moscow),
                               saratov: (kazan, samara),
@@ -327,26 +328,34 @@ def running_level(filename):
         runing = True
         pygame.mixer.music.load('data/intro lobby.mp3')
         pygame.mixer.music.play(-1)
-        End(dist, destination_, win, allsprites)
-        main_menu = SimpleButton(10 - 600, 10 - 600, 100, 20, text='В меню')
-        minimap = SimpleButton(10 - 600, 50 - 600, 100, 20, text='Миникарта')
+        end = End(dist, destination_, win, allsprites)
+        btn = pygame.sprite.Group()
+        main_menu = SimpleButton(btn, 10, 10, 100, 20, text='В меню')
+        minimap = SimpleButton(btn, 10, 50, 100, 20, text='Миникарта')
+        actions = {main_menu: BACK_TO_MENU,
+                   minimap: SHOW_MINIMAP}
         btns = [main_menu, minimap]
         while runing:
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
                     runing = False
+                    return EXIT_FROM_GAME
                 if event_1.type == pygame.KEYDOWN:
                     if event_1.key == pygame.K_9:
                         pygame.mixer.music.pause()
                     elif event_1.key == pygame.K_0:
                         pygame.mixer.music.unpause()
                 if event_1.type == pygame.MOUSEBUTTONDOWN:
-
+                    for i in btns:
+                        res = i.update(event_1)
+                        if res:
+                            return actions[i]
             allsprites.update()
-            for i in btns:
-                i.move_button(1, 0)
-                i.move_button(1, 0)
             allsprites.draw(screen)
+            if end.rect.x > -10:
+                for i in btns:
+                    i.draw(screen)
+                    i.draw(screen)
             pygame.display.flip()
             time_.tick(FPS)
         pygame.mixer.music.stop()
@@ -572,17 +581,21 @@ def running_level(filename):
         time_.tick(FPS)
 
     if f:
-        end_screen(str(player.get_distance()), filename[1])
+        result = end_screen(str(player.get_distance()), filename[1])
         row = (str(player.get_distance()), filename[1], time_wid.get_text(), '1')
+        with open('dest.txt', 'w', encoding='UTF-8') as f:
+            f.writelines([filename[1]])
     else:
-        end_screen(str(player.get_distance()), filename[2], win=False)
+        result = end_screen(str(player.get_distance()), filename[2], win=False)
         row = (str(player.get_distance()), filename[2], time_wid.get_text(), '0')
+        with open('dest.txt', 'w', encoding='UTF-8') as f:
+            f.writelines([filename[2]])
     with open('results.csv', 'w', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
             quoting=csv.QUOTE_MINIMAL)
         writer.writerow(row)
-    pygame.quit()
+        return result
 
 
 run_level = None
@@ -601,7 +614,13 @@ while any((run_level, run_preview, run_minimap)):
         run_preview, run_level = None, None
         run_level = running_level(run_minimap)
         run_minimap = None
-    elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME:
+    elif run_level == BACK_TO_MENU:
+        run_minimap, run_preview, run_level = None, None, None
+        run_preview = running_preview()
+    elif run_level == SHOW_MINIMAP:
+        run_minimap, run_preview, run_level = None, None, None
+        run_minimap = running_minimap()
+    elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME or run_level == BACK_TO_MENU:
         pygame.quit()
         break
     run_the_first_time = False
