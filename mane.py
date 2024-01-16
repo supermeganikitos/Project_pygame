@@ -216,8 +216,9 @@ def running_minimap():
     penza = SimpleButton(dest, 380, 445, 40, 25, pygame.Color('yellow'), text='Penza', font_size=10)
     piter = SimpleButton(dest, 500, 425, 40, 25, pygame.Color('yellow'), text='Piter', font_size=10)
     dests = {1: moscow, 2: kazan, 3: saratov, 4: samara, 5: tyla, 6: penza, 7: piter}
-    with open('data/dest.txt', encoding='UTF-8') as f:
-        f = [int(i.strip()) for i in f.readlines()]
+    with open('data/dest.txt', encoding='UTF-8') as f1:
+        f = [int(i.strip()) for i in f1.readlines()]
+        f1.close()
     if run_the_first_time and not f:
         current_destination = dests[int(start_screen())]
     else:
@@ -571,11 +572,14 @@ def running_level(filename):
 
         all_sprites.draw(screen)
         player_group.draw(screen)
-        ticks = pygame.time.get_ticks()
-        time_wid.set_text(str(ticks / 1000), screen)
+        ticks = str(pygame.time.get_ticks() / 1000)
+        time_wid.set_text(ticks, screen)
         time_wid.draw(screen)
         if player.get_coords() == finish_coord:
             f = True
+            break
+        elif float(ticks) >= 100:
+            f = False
             break
         pygame.display.flip()
         time_.tick(FPS)
@@ -584,16 +588,20 @@ def running_level(filename):
         result = end_screen(str(player.get_distance()), filename[1])
         row = (str(player.get_distance()), filename[1], time_wid.get_text(), '1')
         with open('dest.txt', 'w', encoding='UTF-8') as f:
-            f.writelines([filename[1]])
+            print([filename[1] + '\n'])
+            f.writelines([filename[1] + '\n'])
+            f.close()
     else:
         result = end_screen(str(player.get_distance()), filename[2], win=False)
         row = (str(player.get_distance()), filename[2], time_wid.get_text(), '0')
         with open('dest.txt', 'w', encoding='UTF-8') as f:
-            f.writelines([filename[2]])
+            f.writelines([filename[2] + '\n'])
+            f.close()
     with open('results.csv', 'w', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
             quoting=csv.QUOTE_MINIMAL)
+        print(row)
         writer.writerow(row)
         return result
 
