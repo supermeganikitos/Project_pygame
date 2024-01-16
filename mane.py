@@ -56,15 +56,16 @@ class End(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = -600
         self.rect.y = 0
+        self.image.fill('white', (0, 360, 350, 150))
         font = pygame.font.Font('Australianflyingcorpsstencilsh.ttf', 30)
-        string_rendered = font.render(distance, True, pygame.Color('black'))
+        string_rendered = font.render('Distanse:' + distance, True, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
-        intro_rect.x = 154
+        intro_rect.x = 0
         intro_rect.y = 358
         self.image.blit(string_rendered, intro_rect)
-        string_rendered = font.render(str(dest), True, pygame.Color('black'))
+        string_rendered = font.render('City: ' + str(dest), True, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
-        intro_rect.x = 238
+        intro_rect.x = 0
         intro_rect.y = 401
         self.image.blit(string_rendered, intro_rect)
 
@@ -107,9 +108,6 @@ def running_preview():
     group_preview = pygame.sprite.Group()
     pygame.mixer.music.load('data/autro.mp3')
     pygame.mixer.music.play(-1)
-
-    play = SimpleButton(group_preview, 500, 290, 600, 100, pygame.Color('white'), text='play new')
-    save = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='return to last save')
     mimapbtn = SimpleButton(group_preview, 500, 510, 600, 100, pygame.Color('white'), text='minimap')
     quitq = SimpleButton(group_preview, 500, 620, 600, 100, pygame.Color('white'), text='quit')
     pygame.display.flip()
@@ -145,8 +143,6 @@ def running_preview():
         trucks.update()
         trucks.draw(screen)
         draw_(screen, 'Truck simulator', width, height, delta_frame=10, width_frame=10)
-        play.draw(screen)
-        save.draw(screen)
         mimapbtn.draw(screen)
         quitq.draw(screen)
         clock.tick(10)
@@ -161,12 +157,11 @@ def running_preview():
 def running_minimap():
     def start_screen():
         intro_text = ['Выберите начальную точку:',
-                      ' moscow: 1',
+                      'moscow: 1',
                       'kazan: 2',
                       'saratov: 3',
                       'samara: 4',
                       'tyla: 5', 'penza: 6', 'piter: 7']
-
         fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
         screen.blit(fon, (0, 0))
         font = pygame.font.Font(None, 30)
@@ -201,6 +196,7 @@ def running_minimap():
                         return '7'
             pygame.display.flip()
             time_count.tick(FPS)
+
     size = width, height = 550, 690
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('simulator truck')
@@ -217,12 +213,14 @@ def running_minimap():
     piter = SimpleButton(dest, 500, 425, 40, 25, pygame.Color('yellow'), text='Piter', font_size=10)
     dests = {1: moscow, 2: kazan, 3: saratov, 4: samara, 5: tyla, 6: penza, 7: piter}
     with open('data/dest.txt', encoding='UTF-8') as f1:
-        f = [int(i.strip()) for i in f1.readlines()]
+        f = [i.strip() for i in f1.readlines()]
         f1.close()
-    if run_the_first_time and not f:
+    if not (f[-1]):
+        current_destination = dests[int(start_screen())]
+    elif run_the_first_time and not f:
         current_destination = dests[int(start_screen())]
     else:
-        current_destination = dests[f[-1]]
+        current_destination = dests[int(f[-1])]
     connected_destinations = {moscow: (piter, penza, samara, kazan),
                               kazan: (saratov, moscow),
                               saratov: (kazan, samara),
@@ -286,7 +284,7 @@ def running_level(filename):
         'emptyF': load_image('grass_fin.png'),
         'rock': load_image('rock.png'),
         'lava': load_image('lava.png'),
-        'tree': load_image('tree.png', -1)
+        'tree': load_image('tree.jpg', -1)
     }
     player_image = load_image('truck1.png', -1)
 
@@ -294,6 +292,7 @@ def running_level(filename):
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
+    bomb_group = pygame.sprite.Group()
 
     def start_screen():
         intro_text = ["ЗАСТАВКА", "",
@@ -340,7 +339,7 @@ def running_level(filename):
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
                     runing = False
-                    return EXIT_FROM_GAME
+                    terminate()
                 if event_1.type == pygame.KEYDOWN:
                     if event_1.key == pygame.K_9:
                         pygame.mixer.music.pause()
@@ -372,6 +371,26 @@ def running_level(filename):
             val = ['.....' for _ in range(5)]
             val[0] = '@....'
             return val
+
+    class Bomb(pygame.sprite.Sprite):
+        image = load_image("bomb.png")
+        image_boom = load_image("boom.png")
+
+        def __init__(self, x, y, *group):
+            # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
+            # Это очень важно!!!
+            super().__init__(*group)
+            self.image = Bomb.image
+            self.rect = self.image.get_rect()
+            self.rect.x = x * tile_width
+            self.rect.y = y * tile_height
+
+        def update(self, *args):
+            if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
+                    self.rect.collidepoint(args[0].pos):
+                self.image = self.image_boom
+            elif self.image != self.image_boom:
+                self.rect.y += 1
 
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
@@ -492,14 +511,15 @@ def running_level(filename):
                     finish_coord = (x, y)
                     Tile('emptyF', x, y)
                 elif level[y][x] == 'R':
+                    Tile('empty', x, y)
                     Tile('rock', x, y)
                 elif level[y][x] == 'T':
                     Tile('tree', x, y)
                 elif level[y][x] == '*':
                     Tile('lava', x, y)
                 elif level[y][x] == 'B':
-                    Bomb(x, y)
                     Tile('empty', x, y)
+                    Bomb(x, y, bomb_group, all_sprites)
                 else:
                     Tile('empty', x, y)
         # вернем игрока, а также размер поля в клетках
@@ -568,8 +588,10 @@ def running_level(filename):
             camera.update(level_x, level_y)
             for sprite in tiles_group:
                 camera.apply(sprite)
+            for sprite in bomb_group:
+                camera.apply(sprite)
         screen.fill((0, 0, 0))
-
+        bomb_group.update()
         all_sprites.draw(screen)
         player_group.draw(screen)
         ticks = str(pygame.time.get_ticks() / 1000)
@@ -584,20 +606,20 @@ def running_level(filename):
         pygame.display.flip()
         time_.tick(FPS)
 
+    dests_ = {'Moscow': 1, 'Kazan': 2, 'Saratov': 3, 'Samara': 4, 'Tyla': 5, 'Penza': 6, 'Piter': 7}
     if f:
         result = end_screen(str(player.get_distance()), filename[1])
         row = (str(player.get_distance()), filename[1], time_wid.get_text(), '1')
-        with open('dest.txt', 'w', encoding='UTF-8') as f:
-            print([filename[1] + '\n'])
-            f.writelines([filename[1] + '\n'])
+        with open('data\dest.txt', 'w', encoding='UTF-8') as f:
+            f.writelines([str(dests_[filename[1]]) + '\n'])
             f.close()
     else:
         result = end_screen(str(player.get_distance()), filename[2], win=False)
         row = (str(player.get_distance()), filename[2], time_wid.get_text(), '0')
-        with open('dest.txt', 'w', encoding='UTF-8') as f:
-            f.writelines([filename[2] + '\n'])
+        with open('data\dest.txt', 'w', encoding='UTF-8') as f:
+            f.writelines([str(dests_[filename[2]]) + '\n'])
             f.close()
-    with open('results.csv', 'w', newline='') as csvfile:
+    with open('results.csv', 'a', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
             quoting=csv.QUOTE_MINIMAL)
@@ -629,6 +651,6 @@ while any((run_level, run_preview, run_minimap)):
         run_minimap, run_preview, run_level = None, None, None
         run_minimap = running_minimap()
     elif run_preview == EXIT_FROM_GAME or run_minimap == EXIT_FROM_GAME or run_level == BACK_TO_MENU:
-        pygame.quit()
+        terminate()
         break
     run_the_first_time = False

@@ -43,27 +43,6 @@ def load_image(name, colorkey=None):
     return image
 
 
-class Bomb(pygame.sprite.Sprite):
-    image = load_image("bomb.png")
-    image_boom = load_image("boom.png")
-
-    def __init__(self, x, y, *group):
-        # НЕОБХОДИМО вызвать конструктор родительского класса Sprite.
-        # Это очень важно!!!
-        super().__init__(*group)
-        self.image = Bomb.image
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-
-    def update(self, *args):
-        if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
-                self.rect.collidepoint(args[0].pos):
-            self.image = self.image_boom
-        elif self.image != self.image_boom:
-            self.rect.y += 1
-
-
 class Truck(pygame.sprite.Sprite):
     image = load_image("truck.png", -1)
 
