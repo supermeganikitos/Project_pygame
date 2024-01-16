@@ -328,6 +328,9 @@ def running_level(filename):
         pygame.mixer.music.load('data/intro lobby.mp3')
         pygame.mixer.music.play(-1)
         End(dist, destination_, win, allsprites)
+        main_menu = SimpleButton(10 - 600, 10 - 600, 100, 20, text='В меню')
+        minimap = SimpleButton(10 - 600, 50 - 600, 100, 20, text='Миникарта')
+        btns = [main_menu, minimap]
         while runing:
             for event_1 in pygame.event.get():
                 if event_1.type == pygame.QUIT:
@@ -337,7 +340,12 @@ def running_level(filename):
                         pygame.mixer.music.pause()
                     elif event_1.key == pygame.K_0:
                         pygame.mixer.music.unpause()
+                if event_1.type == pygame.MOUSEBUTTONDOWN:
+
             allsprites.update()
+            for i in btns:
+                i.move_button(1, 0)
+                i.move_button(1, 0)
             allsprites.draw(screen)
             pygame.display.flip()
             time_.tick(FPS)
@@ -480,6 +488,7 @@ def running_level(filename):
                 elif level[y][x] == '*':
                     Tile('lava', x, y)
                 elif level[y][x] == 'B':
+                    Bomb(x, y)
                     Tile('empty', x, y)
                 else:
                     Tile('empty', x, y)
@@ -564,10 +573,10 @@ def running_level(filename):
 
     if f:
         end_screen(str(player.get_distance()), filename[1])
-        row = (str(player.get_distance()), filename[1], time_wid.get_text(), 'win')
+        row = (str(player.get_distance()), filename[1], time_wid.get_text(), '1')
     else:
         end_screen(str(player.get_distance()), filename[2], win=False)
-        row = (str(player.get_distance()), filename[2], time_wid.get_text(), 'lose')
+        row = (str(player.get_distance()), filename[2], time_wid.get_text(), '0')
     with open('results.csv', 'w', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
