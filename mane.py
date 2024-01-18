@@ -7,7 +7,7 @@ from trucks import Truck, trucks, SimpleButton, load_image, set_backround
 FPS = 60
 SHOW_MINIMAP = 1
 SHOW_PREWIEW = 2
-SHOW_ROAD = 3
+SHOW_STAT = 3
 EXIT_FROM_GAME = 4
 BACK_TO_MENU = 5
 run_the_first_time = True
@@ -108,6 +108,7 @@ def running_preview():
     group_preview = pygame.sprite.Group()
     pygame.mixer.music.load('data/autro.mp3')
     pygame.mixer.music.play(-1)
+    statbtn = SimpleButton(group_preview, 500, 400, 600, 100, pygame.Color('white'), text='show statistics')
     mimapbtn = SimpleButton(group_preview, 500, 510, 600, 100, pygame.Color('white'), text='minimap')
     quitq = SimpleButton(group_preview, 500, 620, 600, 100, pygame.Color('white'), text='quit')
     pygame.display.flip()
@@ -121,7 +122,7 @@ def running_preview():
     runningpreview = True
     res = False
     res1 = False
-    flag = False
+    res2 = False
     while runningpreview:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -129,29 +130,30 @@ def running_preview():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 res = mimapbtn.update(event)
                 res1 = quitq.update(event)
-                if res or res1:
-                    flag = True
+                res2 = statbtn.update(event)
+                if res or res1 or res2:
                     break
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_9:
                     pygame.mixer.music.pause()
                 elif event.key == pygame.K_0:
                     pygame.mixer.music.unpause()
-        if flag:
-            break
+        if res:
+            pygame.mixer.music.stop()
+            return SHOW_MINIMAP
+        if res1:
+            return EXIT_FROM_GAME
+        if res2:
+            return SHOW_STAT
         screen.fill((0, 0, 0))
         trucks.update()
         trucks.draw(screen)
         draw_(screen, 'Truck simulator', width, height, delta_frame=10, width_frame=10)
+        statbtn.draw(screen)
         mimapbtn.draw(screen)
         quitq.draw(screen)
         clock.tick(10)
         pygame.display.flip()
-    if res:
-        pygame.mixer.music.stop()
-        return SHOW_MINIMAP
-    if res1:
-        return EXIT_FROM_GAME
 
 
 def running_minimap():
@@ -242,7 +244,7 @@ def running_minimap():
     q_or_not = False
     openlevelkey = False
     screen.fill((0, 0, 0))
-    bg = pygame.image.load("data\Roads.png")
+    bg = pygame.image.load("data/Roads.png")
     screen.blit(bg, (0, 0))
     while runningminimap:
         for event in pygame.event.get():
@@ -271,6 +273,52 @@ def running_minimap():
         return BACK_TO_MENU
     if openlevelkey:
         return openlevelkey
+
+
+def running_statistics():
+    with open(r'data\results.csv', 'r', newline='') as csvfile:
+        reader = [(int(i[0]), i[1], float(i[2]), int(i[3]))
+                  for i in csv.reader(csvfile, delimiter=';', quotechar='"')]
+        print(reader)
+        csvfile.close()
+    all_dst = sum(i[0] for i in reader)
+    avg_dst = all_dst / len(reader)
+    all_time = sum(i[2] for i in reader)
+    avg_time = all_time / len(reader)
+    win_rate = sum(i[3] for i in reader) / len(reader)
+    size = width, height = 500, 500
+    screen = pygame.display.set_mode(size)
+    menu = pygame.sprite.Group()
+    intro_text = [f'Всего пройдено: {all_dst}', f'Пройдено в среднем: {avg_dst}', f'Время в дороге: {all_time}',
+                  f'Среднее время на 1 уровень: {avg_time}', f'Процент побед: {win_rate}']
+    fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 0
+    time_count = pygame.time.Clock()
+    for line in intro_text:
+        string_rendered = font.render(line, True, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    quit_to_the_menu = SimpleButton(menu, 450, 0, 50, 50, pygame.Color('yellow'), text='В меню', font_size=10)
+    q_or_not = False
+    while True:
+        for event_ in pygame.event.get():
+            if event_.type == pygame.QUIT:
+                terminate()
+            elif event_.type == pygame.MOUSEBUTTONDOWN:
+                q_or_not = quit_to_the_menu.update(event_)
+                if q_or_not:
+                    break
+        quit_to_the_menu.draw(screen)
+        if q_or_not:
+            return BACK_TO_MENU
+        pygame.display.flip()
+        time_count.tick(FPS)
 
 
 def running_level(filename):
@@ -346,10 +394,10 @@ def running_level(filename):
                     elif event_1.key == pygame.K_0:
                         pygame.mixer.music.unpause()
                 if event_1.type == pygame.MOUSEBUTTONDOWN:
-                    for i in btns:
-                        res = i.update(event_1)
-                        if res:
-                            return actions[i]
+                    for i_ in btns:
+                        res_ = i_.update(event_1)
+                        if res_:
+                            return actions[i_]
             allsprites.update()
             allsprites.draw(screen)
             if end.rect.x > -10:
@@ -647,6 +695,7 @@ def running_level(filename):
             csvfile, delimiter=';', quotechar='"',
             quoting=csv.QUOTE_MINIMAL)
         writer.writerow(row)
+        csvfile.close()
     if f:
         print(1)
         result = end_screen(str(player.get_distance()), filename[1])
@@ -655,15 +704,22 @@ def running_level(filename):
     return result
 
 
+run_stat = None
 run_level = None
 run_minimap = None
 run_preview = running_preview()
 run_the_first_time = True
-while any((run_level, run_preview, run_minimap)):
+while any((run_level, run_preview, run_minimap, run_stat)):
     '''print(run_minimap, run_preview, run_level)'''
     if run_preview == SHOW_MINIMAP:
-        run_minimap, run_preview, run_level = None, None, None
+        run_stat, run_minimap, run_preview, run_level = None, None, None, None
         run_minimap = running_minimap()
+    elif run_preview == SHOW_STAT:
+        run_stat, run_minimap, run_preview, run_level = None, None, None, None
+        run_stat = running_statistics()
+    elif run_stat == BACK_TO_MENU:
+        run_stat, run_minimap, run_preview, run_level = None, None, None, None
+        run_preview = running_preview()
     elif run_minimap == BACK_TO_MENU:
         run_minimap, run_preview, run_level = None, None, None
         run_preview = running_preview()
