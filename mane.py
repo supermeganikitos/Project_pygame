@@ -494,7 +494,6 @@ def running_level(filename):
             except IndexError:
                 pass
             try:
-                print(self.lvl_map[y + 1][x - 1])
                 if self.lvl_map[y + 1][x - 1] in moveable and x - 1 > 0:
                     return True
             except IndexError:
@@ -658,7 +657,6 @@ def running_level(filename):
         for i in bomb_group:
             if player.get_coords()[0] <= i.getx() <= player.get_coords()[0] + 2 and player.get_coords()[1] >= i.gety():
                 res = i.update(1, player)
-                print(res)
                 if not res:
                     break
         all_sprites.draw(screen)
@@ -697,7 +695,6 @@ def running_level(filename):
         writer.writerow(row)
         csvfile.close()
     if f:
-        print(1)
         result = end_screen(str(player.get_distance()), filename[1])
     else:
         result = end_screen(str(player.get_distance()), filename[2], win=False)
