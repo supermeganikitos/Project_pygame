@@ -2,9 +2,9 @@ import sys
 import os
 import pygame
 import csv
-from trucks import Truck, trucks, SimpleButton, load_image, set_backround, Bomb
+from trucks import Truck, trucks, SimpleButton, load_image, set_backround
 
-FPS = 50
+FPS = 60
 SHOW_MINIMAP = 1
 SHOW_PREWIEW = 2
 SHOW_ROAD = 3
@@ -58,7 +58,7 @@ class End(pygame.sprite.Sprite):
         self.rect.y = 0
         self.image.fill('white', (0, 360, 350, 150))
         font = pygame.font.Font('Australianflyingcorpsstencilsh.ttf', 30)
-        string_rendered = font.render('Distanse:' + distance, True, pygame.Color('black'))
+        string_rendered = font.render('Distance:' + distance, True, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
         intro_rect.x = 0
         intro_rect.y = 358
@@ -72,8 +72,8 @@ class End(pygame.sprite.Sprite):
     def update(self, *args):
         if self.salut:
             self.c += 1
-            self.c //= 50
             if self.c % 50 == 0:
+                self.c //= 50
                 self.image.fill((255, 255, 255), (350, 350, 150, 150))
                 self.salut.update()
                 self.image.blit(self.salut.get_cur_frame(), (350, 350))
@@ -242,7 +242,7 @@ def running_minimap():
     q_or_not = False
     openlevelkey = False
     screen.fill((0, 0, 0))
-    bg = pygame.image.load("Roads.png")
+    bg = pygame.image.load("data\Roads.png")
     screen.blit(bg, (0, 0))
     while runningminimap:
         for event in pygame.event.get():
@@ -382,15 +382,26 @@ def running_level(filename):
             super().__init__(*group)
             self.image = Bomb.image
             self.rect = self.image.get_rect()
+            self.mask = pygame.mask.from_surface(self.image)
+            self.lvl_x = x
+            self.lvl_y = y
             self.rect.x = x * tile_width
             self.rect.y = y * tile_height
 
-        def update(self, *args):
-            if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
-                    self.rect.collidepoint(args[0].pos):
-                self.image = self.image_boom
-            elif self.image != self.image_boom:
-                self.rect.y += 1
+        def getx(self):
+            return self.lvl_x
+
+        def gety(self):
+            return self.lvl_y
+
+        def update(self, mov, *args):
+            if not pygame.sprite.collide_mask(self, args[0]) and self.image != Bomb.image_boom:
+                self.rect.y += mov
+                self.lvl_y += mov / tile_height
+                return True
+            else:
+                self.image = Bomb.image_boom
+                return False
 
     class Tile(pygame.sprite.Sprite):
         def __init__(self, tile_type, pos_x, pos_y):
@@ -407,6 +418,7 @@ def running_level(filename):
             super().__init__(player_group, all_sprites)
             self.current_moves = 0
             self.image = player_image
+            self.mask = pygame.mask.from_surface(self.image)
             self.rect = self.image.get_rect().move(
                 tile_width * pos_x - 5, tile_height * pos_y + 22)
             self.lvl_map = load_level(filename[0])
@@ -514,6 +526,7 @@ def running_level(filename):
                     Tile('empty', x, y)
                     Tile('rock', x, y)
                 elif level[y][x] == 'T':
+                    Tile('empty', x, y)
                     Tile('tree', x, y)
                 elif level[y][x] == '*':
                     Tile('lava', x, y)
@@ -560,7 +573,10 @@ def running_level(filename):
     pygame.mixer.music.load('data/' + qwert)
     pygame.mixer.music.play(-1)
     time_ = pygame.time.Clock()
+    time__ = pygame.time.Clock()
     f = None
+    res = True
+    ticks = 0
     gr_1 = pygame.sprite.Group()
     time_wid = SimpleButton(gr_1, 450, 0, 50, 20, text='')
     while running:
@@ -583,7 +599,6 @@ def running_level(filename):
                     level_x = tile_width
                 if event.key == pygame.K_RIGHT:
                     level_x = -tile_width
-                print(player.get_coords(), finish_coord)
         if player.ismove_possible:
             camera.update(level_x, level_y)
             for sprite in tiles_group:
@@ -591,11 +606,18 @@ def running_level(filename):
             for sprite in bomb_group:
                 camera.apply(sprite)
         screen.fill((0, 0, 0))
-        bomb_group.update()
+        a = time__.tick() / 1000
+        for i in bomb_group:
+            if player.get_coords()[0] <= i.getx() <= player.get_coords()[0] + 2 and player.get_coords()[1] >= i.gety():
+                res = i.update(1, player)
+                print(res)
+                if not res:
+                    break
         all_sprites.draw(screen)
         player_group.draw(screen)
-        ticks = str(pygame.time.get_ticks() / 1000)
-        time_wid.set_text(ticks, screen)
+        bomb_group.draw(screen)
+        ticks += a
+        time_wid.set_text(str(ticks)[:5], screen)
         time_wid.draw(screen)
         if player.get_coords() == finish_coord:
             f = True
@@ -603,29 +625,34 @@ def running_level(filename):
         elif float(ticks) >= 100:
             f = False
             break
+        elif not res:
+            f = False
+            break
         pygame.display.flip()
         time_.tick(FPS)
 
     dests_ = {'Moscow': 1, 'Kazan': 2, 'Saratov': 3, 'Samara': 4, 'Tyla': 5, 'Penza': 6, 'Piter': 7}
     if f:
-        result = end_screen(str(player.get_distance()), filename[1])
         row = (str(player.get_distance()), filename[1], time_wid.get_text(), '1')
-        with open('data\dest.txt', 'w', encoding='UTF-8') as f:
-            f.writelines([str(dests_[filename[1]]) + '\n'])
-            f.close()
+        with open('data\dest.txt', 'w', encoding='UTF-8') as fille:
+            fille.writelines([str(dests_[filename[1]]) + '\n'])
+            fille.close()
     else:
-        result = end_screen(str(player.get_distance()), filename[2], win=False)
         row = (str(player.get_distance()), filename[2], time_wid.get_text(), '0')
-        with open('data\dest.txt', 'w', encoding='UTF-8') as f:
-            f.writelines([str(dests_[filename[2]]) + '\n'])
-            f.close()
-    with open('results.csv', 'a', newline='') as csvfile:
+        with open('data\dest.txt', 'w', encoding='UTF-8') as fille:
+            fille.writelines([str(dests_[filename[2]]) + '\n'])
+            fille.close()
+    with open(r'data\results.csv', 'a', newline='') as csvfile:
         writer = csv.writer(
             csvfile, delimiter=';', quotechar='"',
             quoting=csv.QUOTE_MINIMAL)
-        print(row)
         writer.writerow(row)
-        return result
+    if f:
+        print(1)
+        result = end_screen(str(player.get_distance()), filename[1])
+    else:
+        result = end_screen(str(player.get_distance()), filename[2], win=False)
+    return result
 
 
 run_level = None
