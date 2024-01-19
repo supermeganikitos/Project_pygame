@@ -289,8 +289,8 @@ def running_statistics():
     size = width, height = 500, 500
     screen = pygame.display.set_mode(size)
     menu = pygame.sprite.Group()
-    intro_text = [f'Всего пройдено: {all_dst}', f'Пройдено в среднем: {avg_dst}', f'Время в дороге: {all_time}',
-                  f'Среднее время на 1 уровень: {avg_time}', f'Процент побед: {win_rate * 100}']
+    intro_text = [f'Всего пройдено: {all_dst}', f'Пройдено в среднем: {str(avg_dst)[:5]}', f'Время в дороге: {all_time}',
+                  f'Среднее время на 1 уровень: {str(avg_time)[:5]}', f'Процент побед: {str(win_rate * 100)[0:5]}']
     fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
